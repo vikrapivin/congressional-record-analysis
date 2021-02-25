@@ -6,9 +6,9 @@
 This repository aims to use the congressional record to analyze the number of motions of a particular member of Congress.
 In particular, it aims to do three things:
 
-**1. Scrape all of the files** from the Congressional Record. 
-**2. Parse the text** in each Congressional Record and use Regex/NLP to create metrics describing the overall "activity" of a Member of Congress. 
-**3. Correlate these metrics** against other metrics associated with that Member of Congress (i.e. voting record, positions of power, etc.). 
+1. **Scrape all of the files** from the Congressional Record. 
+2. **Parse the text** in each Congressional Record and use Regex/NLP to create metrics describing the overall "activity" of a Member of Congress. 
+3. **Correlate these metrics** against other metrics associated with that Member of Congress (i.e. voting record, positions of power, etc.). 
 
 
 ### Congressional Record 

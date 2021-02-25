@@ -3,6 +3,7 @@
 ## (Work in Progress)
 *This repository is an active work in progress. Feel free to look through it for interest, but the analysis is ongoing.*
 
+### Overview
 This repository aims to use the congressional record to analyze the number of motions of a particular member of Congress.
 In particular, it aims to do three things:
 

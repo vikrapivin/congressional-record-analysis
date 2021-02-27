@@ -52,15 +52,16 @@ pdf_text = pdf_to_text(path + pdf_name)
 
 
 #%%
-number_of_lines = 1500
-print(pdf_text[0:number_of_lines])
+number_of_lines = len(pdf_text)
+# print(pdf_text[0:number_of_lines])
 
 
 def count_speakers(text):
     '''
     This functions creates a dictionary of the speakers in a session and the number
     number of times they speak. As of now, this function just finds the number
-    of times the congressperson is mentioned in the text
+    of times the congressperson is mentioned in the text. More will need to be added
+    to figure out what they're talking about.
     
     Parameters
     ----------
@@ -73,12 +74,34 @@ def count_speakers(text):
     '''
     # Import packages
     import re
+    import collections
     
     # Use regex to find all of the male Congresspeopele (always referred to as
     # 'Mr.'  or 'Ms.' followed by undetermined whitespace followed by their name)
-    mr_pattern = r'(Mr.)\s*([A-Za-z]*)'
-    mr_matches = re.findall(mr_pattern, text)
+    speaker_pattern = re.compile(r"""
+                            (?:Mr.|Ms.) # It starts either with 'Mr.' or 'Ms.'
+                            \s*   # Followed by undeteremined whitespace
+                            ([A-Za-z]*) # Then any one-word text
+                            """,
+                            re.VERBOSE
+                            )
+                            
+    # Find all of our matches. Because of the way we structured this,
+    # it will return a list of tuples.
+    #   Ex: [('Mr.', 'COSTA'), ('Mr.', BLUMENAUER')]
+    speaker_matches = re.findall(speaker_pattern, text)
     
-    return mr_matches
+    # Our names are ALL CAPS so let's convert them to_title and remove '' 
+    # from the list of speakers
+    speaker_matches = [x.title() for x in speaker_matches if x != '']
+    
+    # Let's find the unique values in this list to create our dictionary keys
+    speaker_counts = collections.defaultdict()
+    speaker_counts = {speaker: speaker_matches.count(speaker) for speaker in speaker_matches}
+    
+    # Let's sort our dictionary so it's easier to parse through
+    sorted_speakers = dict(sorted(speaker_counts.items(), key = lambda kv: kv[1]))
+
+    return sorted_speakers   
 
 print(count_speakers(pdf_text[0:number_of_lines]))

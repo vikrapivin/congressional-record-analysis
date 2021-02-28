@@ -69,7 +69,7 @@ def count_speakers(text):
 
     Returns
     -------
-    speaker_dict : dictionary(key = speaker, value = # of times speaking)
+    sorted_speakers : dictionary(key = speaker, value = # of times speaking)
     
     '''
     # Import packages
@@ -81,21 +81,21 @@ def count_speakers(text):
     speaker_pattern = re.compile(r"""
                             (?:Mr.|Ms.) # It starts either with 'Mr.' or 'Ms.'
                             \s*   # Followed by undeteremined whitespace
-                            ([A-Za-z]*) # Then any one-word text
+                            ([A-Za-z]*) # Then any one-word text. Note: This screws us if a Congress person has a double last name (i.e. Watson Coleman)
                             """,
                             re.VERBOSE
                             )
                             
     # Find all of our matches. Because of the way we structured this,
-    # it will return a list of tuples.
-    #   Ex: [('Mr.', 'COSTA'), ('Mr.', BLUMENAUER')]
+    # it will return a list.
+    #   Ex: ['COSTA', 'BLUMENAUER']
     speaker_matches = re.findall(speaker_pattern, text)
     
     # Our names are ALL CAPS so let's convert them to_title and remove '' 
     # from the list of speakers
     speaker_matches = [x.title() for x in speaker_matches if x != '']
     
-    # Let's find the unique values in this list to create our dictionary keys
+    # Let's count the occurrences of each speaker and put this into a dictionary
     speaker_counts = collections.defaultdict()
     speaker_counts = {speaker: speaker_matches.count(speaker) for speaker in speaker_matches}
     
@@ -104,4 +104,8 @@ def count_speakers(text):
 
     return sorted_speakers   
 
-print(count_speakers(pdf_text[0:number_of_lines]))
+
+# Run our function
+speaker_counts = count_speakers(pdf_text[0:number_of_lines])
+
+print(speaker_counts)

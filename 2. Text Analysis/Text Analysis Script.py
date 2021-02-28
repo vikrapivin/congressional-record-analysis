@@ -6,10 +6,9 @@
 # various activities
 
 
-#%% Load Data and import packages
-import os
-
-
+# ----------------------------------------------------------------------------
+#                               Convert PDF to Text
+# ----------------------------------------------------------------------------
 def pdf_to_text(path):
     '''
     This function takes in the path for a given pdf and converts it to a string
@@ -43,6 +42,9 @@ def pdf_to_text(path):
             
     return output_string.getvalue()
 
+#%%
+import os
+
 # Open the pdf
 path = os.getcwd() + '/2. Text Analysis/'
 pdf_name = os.listdir(path)[2]
@@ -56,6 +58,9 @@ number_of_lines = len(pdf_text)
 # print(pdf_text[0:number_of_lines])
 
 
+# ----------------------------------------------------------------------------
+#                               Count Speakers
+# ----------------------------------------------------------------------------
 def count_speakers(text):
     '''
     This functions creates a dictionary of the speakers in a session and the number
@@ -106,6 +111,46 @@ def count_speakers(text):
 
 
 # Run our function
-speaker_counts = count_speakers(pdf_text[0:number_of_lines])
+speaker_dict = count_speakers(pdf_text[0:number_of_lines])
 
-print(speaker_counts)
+print(speaker_dict)
+
+
+#%%
+# ----------------------------------------------------------------------------
+#                         Convert Dictionary to Dataframe
+# ----------------------------------------------------------------------------
+def dict_to_df(dict_):
+    '''
+    Now that we have a dictionary of speaker counts, let's convert this into a 
+    pandas dataframe
+
+    Parameters
+    ----------
+    dict_ : dictionary input
+
+    Returns
+    -------
+    df : pandas dataframe
+    
+    '''
+    
+    import pandas as pd
+    
+    # Convert the dictionary to a dataframe and then Move the index to columns 
+    # and sort our values based on the '0' column
+    df = pd.DataFrame.from_dict(dict_, orient = 'index') \
+            .sort_values(0, ascending = False) \
+            .reset_index()
+
+            
+    # Rename our columns appropriately
+    df.columns = ['speaker', 'appearances']
+    
+    # Let's also put the date of the session in as a column
+    split_date = pdf_name.split('.')[0].split('-')
+    df['session'] = split_date[1] + '-' + split_date[2] + '-' + split_date[3]
+    
+    return df
+
+print(dict_to_df(speaker_dict).head(10))

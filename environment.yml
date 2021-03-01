@@ -319,6 +319,8 @@ dependencies:
     - spacy
     - spacy-legacy
     - srsly
+    - stanza
     - thinc
+    - torch
     - typer
     - wasabi

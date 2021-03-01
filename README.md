@@ -8,7 +8,10 @@ This repository aims to use the congressional record to analyze the number of mo
 In particular, it aims to do three things:
 
 1. **Scrape all of the files** from the Congressional Record. 
-2. **Parse the text** in each Congressional Record and use Regex/NLP to create metrics describing the overall "activity" of a Member of Congress. 
+2. **Parse the text** in each Congressional Record and use Regex/NLP to create metrics describing the overall "activity" of a Member of Congress. The vision for this section includes:
+    * Parse each paragraph and assign it to a certain speaker.
+    * Identify if a certain part of the record is a speech of a Congressperson or if it includes motions, points of order/privilege, or other parliamentary procedures aside from Congressional speeches.
+    * Identification of which members have served as an acting Speaker or President Pro Tempore.
 3. **Correlate these metrics** against other metrics associated with that Member of Congress (i.e. voting record, positions of power, etc.). 
 
 
@@ -21,5 +24,5 @@ Here's some sample text from the *[February 23, 2021](https://www.congress.gov/1
 
     Mr. CASEY. Mr. President, I ask unanimous consent that the Senate proceed to legislative session and be in a period of morning business, with Senators permitted to speak therein for up to 10 minutes each. The PRESIDING OFFICER. Without objection, it is so ordered." 
 
-As you can see, a section starts with the speaker (in this cae, both **Mr. Casey** at the beginning and the **Presiding Officer** later), then who they are speaking to (usually the head of the Chamber), and then their request/speech. In this case, Senator Casey is addressing the President of the Senate to motion for unanimous consent on what is otherwise trifling morning business.
+As you can see, a section starts with the speaker (in this case, both **Mr. Casey** at the beginning and the **Presiding Officer** later), then who they are speaking to (usually the head of the Chamber), and then their request/speech. In this case, Senator Casey is addressing the President of the Senate to motion for unanimous consent on what is otherwise trifling morning business.
 

@@ -47,7 +47,7 @@ import os
 
 # Open the pdf
 path = os.getcwd() + '/2. Text Analysis/'
-pdf_name = os.listdir(path)[2]
+pdf_name = os.listdir(path)[4]
 
 # Run the function above using our path
 pdf_text = pdf_to_text(path + pdf_name)

@@ -31,9 +31,9 @@ doc = nlp(slightly_processed_text_2)
 # look at nep models
 
 # stanza.download('en', processors='tokenize,mwt,pos,ner') 
-nlp_ner = stanza.Pipeline(lang='en', processors='tokenize,ner')
-# looks like the ner processing has some trouble processing this raw text, probably due to the newlines. You can still pass it later
-doc_ner = nlp_ner(slightly_processed_text_2)
+# nlp_ner = stanza.Pipeline(lang='en', processors='tokenize,ner')
+# # looks like the ner processing has some trouble processing this raw text, probably due to the newlines. You can still pass it later
+# doc_ner = nlp_ner(slightly_processed_text_2)
 
 #%%
 # example of printing out sentences with the speaker or person referenced.
@@ -58,6 +58,28 @@ print(*[f'token: {token.text}\tner: {token.ner}' for sent in doc_test.sentences 
 
 
 #%%
+def combineSentences(sentences):
+    combinedSent = ""
+    firstSent = True
+    for sentence in sentences:
+        if firstSent != True:
+            combinedSent += " "
+        else:
+            firstSent = False
+        combinedSent += sentence.text
+    return combinedSent
+
+def combineWords(words):
+    combinedWord = ""
+    firstWord = True
+    for word in words:
+        if firstWord != True:
+            combinedWord += " "
+        else:
+            firstWord = False
+        combinedWord += word.text
+    return combinedWord
+
 def getTextFromWords(wordList):
     compString = ""
     skipSpace = True
@@ -77,11 +99,12 @@ def getTextFromWords(wordList):
 first_scan_partition_text = []
 ii = 0
 areWeInOrder = False
+actingPresidingOfficerParsed = {}
 for sentence in doc.sentences:
     jj = 0
     # add Speaker, President pro tempore, and President of the Senate, The PRESIDING OFFICER below
     # also add when a speaker is changed ie. "The SPEKAER pro tempre (Mr. Levin of Michigan),"
-    if sentence.text =='The SPEAKER pro tempore.' or sentence.text == 'The ACTING PRESIDENT pro tempore.':
+    if sentence.text =='The SPEAKER pro tempore.' or sentence.text == 'The ACTING PRESIDENT pro tempore.' or sentence.text == 'The PRESIDING OFFICER.':
         print(sentence.text)
         first_scan_partition_text.append(ii)
         print(ii)
@@ -93,6 +116,21 @@ for sentence in doc.sentences:
         ii = ii + 1
         continue
     for word in sentence.words:
+        if 'SPEAKER' == word.text or 'ACTING PRESIDENT' == word.text or 'PRESIDING OFFICER' == sentence.words[jj].text+' '+word.text:
+            startName = None
+            endName = None
+            for jjj in range(jj+1, len(sentence.words)):
+                if sentence.words[jjj].text == '(':
+                    startName = jjj+1
+                if sentence.words[jjj].text == ')':
+                    endName = jjj
+                    break
+            if startName is not None and endName is not None:
+                actingPresidingOfficerParsed[ii] = combineWords(sentence.words[startName:endName])
+                print(sentence.text)
+                first_scan_partition_text.append(ii)
+                print(ii)
+                break
         if 'Mr.' == word.text or 'Ms.' == word.text or 'Mrs.' == word.text:
             if jj != 0:
                 if getTextFromWords(sentence.words[0:jj]).isupper() == False: # start of sections included with person who is speaking first
@@ -140,6 +178,60 @@ for sentence in doc.sentences:
 
 # quick breaking speakers into sections above, everything between an ii and the next ii
 
+#%%
+
+# basic parsing of text to see if a member is making a motion or other parliamentary procedure
+elementaryParsedText = []
+curChair = None
+for ii in range(1,len(first_scan_partition_text)):#len(first_scan_partition_text)):
+    initDic = {}
+    initDic['Text'] = combineSentences(doc.sentences[first_scan_partition_text[ii-1]+1:first_scan_partition_text[ii]])
+    initDic['stanza'] = doc.sentences[first_scan_partition_text[ii-1]+1:first_scan_partition_text[ii]]
+    initDic['Speaker'] = combineWords(doc.sentences[first_scan_partition_text[ii-1]].words[1:len(doc.sentences[first_scan_partition_text[ii-1]].words)-1])
+    if 'SPEAKER' in initDic['Speaker']: # do acting president too later
+        if first_scan_partition_text[ii-1] in actingPresidingOfficerParsed:
+            curChair = actingPresidingOfficerParsed[first_scan_partition_text[ii-1]]
+            initDic['Presiding Member Name'] = curChair
+        elif curChair is not None:
+            initDic['Presiding Member Name'] = curChair
+    # examples of how to parse for some basic motions
+    # if 'i move' in initDic['Text'].lower():
+    #     print(initDic['Speaker'])
+    #     print(ii)
+    # if 'previous question' in initDic['Text'].lower():
+    #     print(initDic['Speaker'])
+    #     print(ii)
+    # if 'i yield' in initDic['Text'].lower():
+    #     print(initDic['Speaker'])
+    #     print(ii)
+    # see if we can predict magic phrases with Stanza
+    # parse motions
+    for sent in initDic['stanza']:
+        includesI = False # I ... move structure should be present in sentence.
+        for word in sent.words:
+            if word.text=='I':
+                includesI = True
+            elif includesI == True and word.text=='move' and word.feats == "Mood=Ind|Tense=Pres|VerbForm=Fin":
+                print(initDic['Speaker'])
+                print(ii)
+                try:
+                    initDic['tags'] += 'motion;'
+                except KeyError:
+                    initDic['tags'] = 'motion;'
+    elementaryParsedText.append(initDic)
+
+
+
+
+
+
+
+# if 'Chair' == word.text and word.upos == 'PROPN' and sentence.words[jj+1].upos == 'VERB':
+# identify a chair prose
+             
+
+
+
 
 #%%
 compString = ""
@@ -156,3 +248,25 @@ for word in doc.sentences[1826].words:
     else:
         compString += " " + word.text
 print(compString)
+
+
+
+#%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

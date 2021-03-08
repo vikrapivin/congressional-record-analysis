@@ -8,6 +8,7 @@ This repository aims to use the congressional record to analyze the number of mo
 In particular, it aims to do three things:
 
 1. **Scrape all of the files** from the Congressional Record. 
+    * basic scrap example pulls a specified congressional day and parses the xml to create a list of sections, the text in each section, and other simple tasks. Also caches the pulled files.
 2. **Parse the text** in each Congressional Record and use Regex/NLP to create metrics describing the overall "activity" of a Member of Congress. The vision for this section includes:
     * Parse each paragraph and assign it to a certain speaker.
     * Identify if a certain part of the record is a speech of a Congressperson or if it includes motions, points of order/privilege, or other parliamentary procedures aside from Congressional speeches.

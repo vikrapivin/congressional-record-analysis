@@ -2,3 +2,4 @@
 .spyproject/config/
 
 .DS_Store
+content/*

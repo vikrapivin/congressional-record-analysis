@@ -1,5 +1,12 @@
-
 .spyproject/config/
-
 .DS_Store
+# ignore cached files...
 content/*
+metadata/*
+# provide one example of the json_output
+json_output/*
+!json_output/CREC-2021-02-24/
+#json_output/*/*
+#json_ouput/CREC-2021-03-04/*
+#!json_output/CREC-2021-02-24/
+

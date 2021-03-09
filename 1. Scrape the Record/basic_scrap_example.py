@@ -8,16 +8,47 @@ import numpy as np
 
 #%%
 
+# download the htm files referenced in the main file for that day. Cache them so you do not need to keep redownloading them.
+# make sure path of this file is the project directory, otherwise you will need to modify .gitignore or your personal exclude file
+def requestHTMLFile(url, useCache = True):
+    if useCache == False:
+        return requests.get(url).content
+    else:
+        urlSplit = url.split('/')
+        if urlSplit[2] != 'www.govinfo.gov':
+            raise WrongWebsiteException('htm file is not from govinfo.gov. Aborting.')
+        fileSavePath = url[24:len(url)]
+        if os.path.exists(os.path.dirname(fileSavePath)) and os.path.exists(fileSavePath):
+            # handle getting cached file
+            cachedHTMLFile = open(fileSavePath, "r")
+            cachedHTML = cachedHTMLFile.read()
+            cachedHTMLFile.close()
+            return cachedHTML
+        else:
+            # handle caching new file
+            downloadHTML = requests.get(url)
+            try:
+                os.makedirs(os.path.dirname(fileSavePath))
+            except OSError as exc: # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise fileExists('Tried to create file that later existed. Something is wrong in requestHTMLFile.')
+            with open(fileSavePath, "w") as f:
+                f.write(downloadHTML.text)
+            return downloadHTML.content
+        
+    
+
+#%%
 # get a specific xml for the congressional record
 # in the future, it may be useful to simply get the zip file:
 # https://www.govinfo.gov/content/pkg/CREC-2021-02-24.zip
 dateString = 'CREC-2021-02-24'
 urlString = 'https://www.govinfo.gov/metadata/pkg/'+dateString+'/mods.xml'
 
-cr_xml_data = requests.get(urlString).content
+# cr_xml_data = requests.get(urlString).content
+cr_xml_data = requestHTMLFile(urlString)
 
 
-#%%
 
 # use BS4
 parsed_cr = BeautifulSoup(cr_xml_data, "xml")
@@ -54,35 +85,7 @@ for child in mods:
 
 #%% explore scraping and parsing data
 
-# download the htm files referenced in the main file for that day. Cache them so you do not need to keep redownloading them.
-# make sure path of this file is the project directory, otherwise you will need to modify .gitignore or your personal exclude file
-def requestHTMLFile(url, useCache = True):
-    if useCache == False:
-        return requests.get(url).content
-    else:
-        urlSplit = url.split('/')
-        if urlSplit[2] != 'www.govinfo.gov':
-            raise WrongWebsiteException('htm file is not from govinfo.gov. Aborting.')
-        fileSavePath = url[24:len(url)]
-        if os.path.exists(os.path.dirname(fileSavePath)) and os.path.exists(fileSavePath):
-            # handle getting cached file
-            cachedHTMLFile = open(fileSavePath, "r")
-            cachedHTML = cachedHTMLFile.read()
-            cachedHTMLFile.close()
-            return cachedHTML
-        else:
-            # handle caching new file
-            downloadHTML = requests.get(url)
-            try:
-                os.makedirs(os.path.dirname(fileSavePath))
-            except OSError as exc: # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise fileExists('Tried to create file that later existed. Something is wrong in requestHTMLFile.')
-            with open(fileSavePath, "w") as f:
-                f.write(downloadHTML.text)
-            return downloadHTML.content
-        
-    
+
 # actually make a basic parser
 def parseSection(child_element):
     parsedSection = {}
@@ -115,11 +118,21 @@ for child in mods:
 
 
 
+#%% 
+# output json
+import json
+testjson = json.dumps(listOfParsedSections)
 
+# importdatatest = json.loads(testjson)
 
-
-
-
+jsonSavePath = 'json_output/' + dateString + '/cr.json'
+try:
+    os.makedirs(os.path.dirname(jsonSavePath))
+except:
+    #ignore the fact the file exists and overwrite it below
+    pass
+with open(jsonSavePath, "w") as f:
+    f.write(testjson)
 
 
 

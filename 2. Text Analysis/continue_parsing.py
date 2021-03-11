@@ -35,3 +35,16 @@ print(df.head())
 print("\n==================================\n")
 print(df.iloc[25, 2])
 
+
+#%%
+# Let's do some basic EDA just to get a sense of what's possible.
+# Note: We'll have to 'explode' the speakers column to unlist the values
+speaker_counts = df \
+    .explode('speakers') \
+    .groupby(['speakers']) \
+    .size() \
+    .reset_index(name = 'count') \
+    .sort_values('count', ascending = False) \
+    .reset_index(drop = True)
+    
+print(speaker_counts.head(10))

@@ -37,19 +37,16 @@ doc = nlp(slightly_processed_text_2)
 
 #%%
 # example of printing out sentences with the speaker or person referenced.
-ii = 0
-for sentence in doc.sentences:
+for ii, sentence in enumerate(doc.sentences):
     for word in sentence.words:
         if 'Mr.' == word.text or 'Ms.' == word.text:
             # if 'PROPN' in word.upos:
             if 'PROPN' in sentence.words[len(sentence.words) - 2].upos:  # is the sentence of the form Mr. name name name... .
                 test = sentence
                 # print(sentence)
-                print(sentence.text)
-                print(ii)
+                print(f"Sentence {ii}: {sentence.text}")
     if ii > 2000:
         break
-    ii += 1
 
 #%%
 nlp_test = stanza.Pipeline(lang='en', processors='tokenize,ner')
@@ -95,6 +92,7 @@ def getTextFromWords(wordList):
         else:
             compString += " " + word.text
     return compString
+
 # example of printing out sentences with the speaker or person who took an action.
 first_scan_partition_text = []
 areWeInOrder = False
@@ -103,14 +101,13 @@ for ii, sentence in enumerate(doc.sentences):
     # add Speaker, President pro tempore, and President of the Senate, The PRESIDING OFFICER below
     # also add when a speaker is changed ie. "The SPEKAER pro tempre (Mr. Levin of Michigan),"
     if any(pres_officer in sentence.text for pres_officer in ['The SPEAKER pro tempore.', 'The ACTING PRESIDENT pro tempore.', 'The PRESIDING OFFICER.']):
-        print(f"Sentence {i}: {sentence.text}")
+        print(f"\nSentence {ii}: {sentence.text}")
         first_scan_partition_text.append(ii)
     if "called to order" in sentence.text:
         areWeInOrder = True
     if "stands adjourned" in sentence.text:
         areWeInOrder = False
     if areWeInOrder == False:
-        ii = ii + 1
         continue
     for jj, word in enumerate(sentence.words):
         if 'SPEAKER' == word.text or 'ACTING PRESIDENT' == word.text or 'PRESIDING OFFICER' == sentence.words[jj].text + ' ' + word.text:
@@ -169,7 +166,7 @@ for ii, sentence in enumerate(doc.sentences):
                 # print(ner_process.sentences[1].tokens[jj+1].ner)
             break
 
-    # Keep a running log of where we're at in the processing
+    # Keep a running log of where we're at in the processing (every 1000 lines)
     if ii%1000 == 0:
         print("\n======================================================")
         print(f"Finished processing line {ii}.")
@@ -248,23 +245,6 @@ for word in doc.sentences[1826].words:
     else:
         compString += " " + word.text
 print(compString)
-
-
-
-#%%
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -31,6 +31,9 @@ df = pd.read_json(cr_json_filepath)
 split_date = dateString.split('.')[0].split('-')
 df['session'] = split_date[1] + '-' + split_date[2] + '-' + split_date[3]
 
+# Note: We'll have to 'explode' the speakers column to unlist the values
+df = df.explode('speakers')
+
 print(df.head())
 print("\n==================================\n")
 print(df.iloc[25, 2])
@@ -38,9 +41,7 @@ print(df.iloc[25, 2])
 
 #%%
 # Let's do some basic EDA just to get a sense of what's possible.
-# Note: We'll have to 'explode' the speakers column to unlist the values
 speaker_counts = df \
-    .explode('speakers') \
     .groupby(['speakers']) \
     .size() \
     .reset_index(name = 'count') \

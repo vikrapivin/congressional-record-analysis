@@ -49,7 +49,7 @@ for sentence in doc.sentences:
                 print(ii)
     if ii > 2000:
         break
-    ii = ii + 1
+    ii += 1
 
 #%%
 nlp_test = stanza.Pipeline(lang='en', processors='tokenize,ner')
@@ -97,17 +97,14 @@ def getTextFromWords(wordList):
     return compString
 # example of printing out sentences with the speaker or person who took an action.
 first_scan_partition_text = []
-ii = 0
 areWeInOrder = False
 actingPresidingOfficerParsed = {}
-for sentence in doc.sentences:
-    jj = 0
+for ii, sentence in enumerate(doc.sentences):
     # add Speaker, President pro tempore, and President of the Senate, The PRESIDING OFFICER below
     # also add when a speaker is changed ie. "The SPEKAER pro tempre (Mr. Levin of Michigan),"
-    if sentence.text =='The SPEAKER pro tempore.' or sentence.text == 'The ACTING PRESIDENT pro tempore.' or sentence.text == 'The PRESIDING OFFICER.':
-        print(sentence.text)
+    if any(pres_officer in sentence.text for pres_officer in ['The SPEAKER pro tempore.', 'The ACTING PRESIDENT pro tempore.', 'The PRESIDING OFFICER.']):
+        print(f"Sentence {i}: {sentence.text}")
         first_scan_partition_text.append(ii)
-        print(ii)
     if "called to order" in sentence.text:
         areWeInOrder = True
     if "stands adjourned" in sentence.text:
@@ -115,8 +112,8 @@ for sentence in doc.sentences:
     if areWeInOrder == False:
         ii = ii + 1
         continue
-    for word in sentence.words:
-        if 'SPEAKER' == word.text or 'ACTING PRESIDENT' == word.text or 'PRESIDING OFFICER' == sentence.words[jj].text+' '+word.text:
+    for jj, word in enumerate(sentence.words):
+        if 'SPEAKER' == word.text or 'ACTING PRESIDENT' == word.text or 'PRESIDING OFFICER' == sentence.words[jj].text + ' ' + word.text:
             startName = None
             endName = None
             for jjj in range(jj+1, len(sentence.words)):
@@ -171,10 +168,13 @@ for sentence in doc.sentences:
                 # print(getTextFromWords(doc.sentences[ii-1].words) + " " + getTextFromWords(sentence.words))
                 # print(ner_process.sentences[1].tokens[jj+1].ner)
             break
-        jj = jj + 1
-    # if ii > 2000:
-    #     break
-    ii = ii + 1
+
+    # Keep a running log of where we're at in the processing
+    if ii%1000 == 0:
+        print("\n======================================================")
+        print(f"Finished processing line {ii}.")
+        print("======================================================\n")
+
 
 # quick breaking speakers into sections above, everything between an ii and the next ii
 

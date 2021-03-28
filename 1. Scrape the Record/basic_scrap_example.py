@@ -3,13 +3,13 @@ import os
 import errno
 import requests
 from bs4 import BeautifulSoup
-import pandas as pd
-import numpy as np
 
 #%%
 
-# download the htm files referenced in the main file for that day. Cache them so you do not need to keep redownloading them.
-# make sure path of this file is the project directory, otherwise you will need to modify .gitignore or your personal exclude file
+# Download the htm files referenced in the main file for that day. Cache them 
+# so you do not need to keep redownloading them. Make sure path of this file 
+# is the project directory, otherwise you will need to modify .gitignore or 
+# your personal exclude file
 def requestHTMLFile(url, useCache = True):
     if useCache == False:
         return requests.get(url).content
@@ -18,6 +18,7 @@ def requestHTMLFile(url, useCache = True):
         if urlSplit[2] != 'www.govinfo.gov':
             raise WrongWebsiteException('htm file is not from govinfo.gov. Aborting.')
         fileSavePath = url[24:len(url)]
+        # Check to see if we've already created this file path
         if os.path.exists(os.path.dirname(fileSavePath)) and os.path.exists(fileSavePath):
             # handle getting cached file
             cachedHTMLFile = open(fileSavePath, "r")
@@ -43,22 +44,22 @@ def requestHTMLFile(url, useCache = True):
 # in the future, it may be useful to simply get the zip file:
 # https://www.govinfo.gov/content/pkg/CREC-2021-02-24.zip
 dateString = 'CREC-2021-02-24'
-urlString = 'https://www.govinfo.gov/metadata/pkg/'+dateString+'/mods.xml'
+urlString = 'https://www.govinfo.gov/metadata/pkg/' + dateString + '/mods.xml'
 
 # cr_xml_data = requests.get(urlString).content
 cr_xml_data = requestHTMLFile(urlString)
 
 
-
 # use BS4
 parsed_cr = BeautifulSoup(cr_xml_data, "xml")
+
 
 #%%
 
 # explore the structure of the xml file
 mods = list(parsed_cr.children)[0]
-ii = 0
-for child in mods:
+
+for ii, child in enumerate(mods):
     name = getattr(child, "name", None)
     if name is not None:
         # print(name)
@@ -79,7 +80,7 @@ for child in mods:
     elif not child.isspace(): # leaf node, don't print spaces
         print(child)
         pass
-    ii += 1
+
     if ii>=3009:
         break
 
@@ -105,17 +106,13 @@ def parseSection(child_element):
 # run parser through all sections in the Congressional Record index htm
 listOfParsedSections = []
 mods = list(parsed_cr.children)[0]
-# ii = 0
+
 for child in mods:
     name = getattr(child, "name", None)
     if name is not None:
         temp = parseSection(child)
         if temp is not None:
             listOfParsedSections.append(temp)
-    # ii += 1
-    # if ii>=1000:
-    #     break
-
 
 
 #%% 
@@ -133,32 +130,6 @@ except:
     pass
 with open(jsonSavePath, "w") as f:
     f.write(testjson)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

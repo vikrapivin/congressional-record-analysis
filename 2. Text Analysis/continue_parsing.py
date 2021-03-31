@@ -24,17 +24,17 @@ cr_loaded_list = json.loads(cr_json)
 
 # print(cr_loaded_list[25]['raw_text'])
 
-# Strip whitespace
-test = ' '.join(cr_loaded_list[162]['raw_text'].split())
+# Strip whitespace and turn our text into a normal string
+test = ' '.join(cr_loaded_list[133]['raw_text'].split())
 
 # Remove extraneous page #'s, which appear either as [H123] or [S123]
 page_pattern = re.compile(r"""
-                    \[              # Start with an open bracket
+                    \[+             # Start with one or more open brackets
                     Page            # Our string ends with something like [Page H123]]
                     \s              # Whitespace
                     [HS]            # Either 'H' or 'S'
                     \d+             # At least one digit
-                    \]              # Ending bracket
+                    \]+             # Ending bracket(s)
                     \s              # Any remaining whitespace before the start of our text
                      """, 
                     re.VERBOSE | re.MULTILINE)

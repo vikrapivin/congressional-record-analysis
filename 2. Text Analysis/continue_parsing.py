@@ -8,12 +8,13 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
 import nltk
+import re 
 
 #%%
 dateString = 'CREC-2021-02-24'
 cr_json_filepath = 'json_output/' + dateString + '/cr.json'
 
-with open('/Users/Owner/Documents/Blog/congressional-record-analysis/json_output/CREC-2021-02-24/cr.json', "r") as file:
+with open('json_output/CREC-2021-02-24/cr.json', "r") as file:
     cr_json = file.read()
 
 cr_loaded_list = json.loads(cr_json)
@@ -21,7 +22,45 @@ cr_loaded_list = json.loads(cr_json)
 #%%
 # do something with the cr_loaded_list
 
-print(cr_loaded_list[25]['raw_text'])
+# print(cr_loaded_list[25]['raw_text'])
+
+# Strip whitespace
+test = ' '.join(cr_loaded_list[162]['raw_text'].split())
+
+# Remove extraneous page #'s, which appear either as [H123] or [S123]
+page_pattern = re.compile(r"""
+                    \[              # Start with an open bracket
+                    Page            # Our string ends with something like [Page H123]]
+                    \s              # Whitespace
+                    [HS]            # Either 'H' or 'S'
+                    \d+             # At least one digit
+                    \]              # Ending bracket
+                    \s              # Any remaining whitespace before the start of our text
+                     """, 
+                    re.VERBOSE | re.MULTILINE)
+test = re.sub(page_pattern, '', test)
+
+
+# Remove everything in the header (Congressional Record Volume all the way up to
+#  www.gpo.gov
+header_pattern = re.compile(r"""
+                    ^\[             # Start with an open bracket
+                    Congressional   # Then theterm Congressional Record Volume
+                    \s              # Include this in case reading the PDF gives us extra white spaces in between words
+                    Record          # Continuation of Congressional Record Volume
+                    \s              # More undetermined whitespace
+                    Volume          # End of Congressional Record Volume
+                    .*              # Find everything between the beginning and end
+                    \[              # Our string ends with something like [www.gpo.gov]
+                    www.gpo.gov     # The URL
+                    \]              # Closing bracket
+                    \s              # Any remaining whitespace
+                     """, 
+                    re.VERBOSE | re.MULTILINE)
+test = re.sub(header_pattern, '', test)
+
+
+print(test)
 
 
 #%%
@@ -52,6 +91,7 @@ speaker_counts = df \
 print(speaker_counts.head(10))
 
 
+
 #%% Tokenization
 # Let's tokenize our raw_text column to get a better sense of which words are
 # most common. First we'll break each sentence into a list of words, and then
@@ -73,6 +113,7 @@ df_pivoted['tokenized_text'] = df_pivoted['tokenized_text'].apply(lambda row: [w
 
 # Explode our dataframe to a longer format so we can perform analytics
 df_pivoted = df_pivoted.explode('tokenized_text')
+
 
 
 #%% Lemmatization

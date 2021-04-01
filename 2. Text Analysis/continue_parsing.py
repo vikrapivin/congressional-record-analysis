@@ -25,10 +25,11 @@ cr_loaded_list = json.loads(cr_json)
 # print(cr_loaded_list[25]['raw_text'])
 
 # Strip whitespace and turn our text into a normal string
-test = ' '.join(cr_loaded_list[133]['raw_text'].split())
+test = cr_loaded_list[152]['raw_text']#.split())
 
 # Remove extraneous page #'s, which appear either as [H123] or [S123]
 page_pattern = re.compile(r"""
+                    \n\n            # identify preceeding newlines to the pages.
                     \[+             # Start with one or more open brackets
                     Page            # Our string ends with something like [Page H123]]
                     \s              # Whitespace
@@ -38,13 +39,13 @@ page_pattern = re.compile(r"""
                     \s              # Any remaining whitespace before the start of our text
                      """, 
                     re.VERBOSE | re.MULTILINE)
-test = re.sub(page_pattern, '', test)
+test = re.sub(page_pattern, ' ', test) # replace above with space.
 
 
 # Remove everything in the header (Congressional Record Volume all the way up to
 #  www.gpo.gov
 header_pattern = re.compile(r"""
-                    ^\[             # Start with an open bracket
+                    \[             # Start with an open bracket
                     Congressional   # Then theterm Congressional Record Volume
                     \s              # Include this in case reading the PDF gives us extra white spaces in between words
                     Record          # Continuation of Congressional Record Volume
@@ -54,10 +55,20 @@ header_pattern = re.compile(r"""
                     \[              # Our string ends with something like [www.gpo.gov]
                     www.gpo.gov     # The URL
                     \]              # Closing bracket
-                    \s              # Any remaining whitespace
-                     """, 
-                    re.VERBOSE | re.MULTILINE)
+                    \n+             # tack on extra newlines
+                    """,   
+                    re.VERBOSE | re.MULTILINE | re.DOTALL)
 test = re.sub(header_pattern, '', test)
+
+# Remove some newline spaces
+# remove formatting newlines that do not start new paragraph
+header_pattern = re.compile("\n(?=\S)")
+test = re.sub(header_pattern, '', test)
+# address new paragraph newlines... replace with newline and tab
+header_pattern = re.compile("\n\s{2}(?=[A-Z])")
+test = re.sub(header_pattern, '\n\t', test)
+# remove initial space that "centers" the title text and any extra newlines at the end
+test = test.strip()
 
 
 print(test)

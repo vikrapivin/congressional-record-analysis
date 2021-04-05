@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
 import nltk
-import re 
+import re
 
 #%%
 dateString = 'CREC-2021-02-24'
@@ -56,17 +56,20 @@ header_pattern = re.compile(r"""
                     www.gpo.gov     # The URL
                     \]              # Closing bracket
                     \n+             # tack on extra newlines
+                    \s+             # Any final whitespace
                     """,   
                     re.VERBOSE | re.MULTILINE | re.DOTALL)
 test = re.sub(header_pattern, '', test)
 
 # Remove some newline spaces
 # remove formatting newlines that do not start new paragraph
-header_pattern = re.compile("\n(?=\S)")
-test = re.sub(header_pattern, '', test)
+new_line_pattern = re.compile("\n(?=\S)")
+test = re.sub(new_line_pattern, '', test)
+
 # address new paragraph newlines... replace with newline and tab
-header_pattern = re.compile("\n\s{2}(?=[A-Z])")
-test = re.sub(header_pattern, '\n\t', test)
+new_line_pattern2  = re.compile("\n\s{2}(?=[A-Z])")
+test = re.sub(new_line_pattern2, '\n\t', test)
+
 # remove initial space that "centers" the title text and any extra newlines at the end
 test = test.strip()
 

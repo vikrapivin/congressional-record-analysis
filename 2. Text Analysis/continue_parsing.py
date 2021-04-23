@@ -19,62 +19,81 @@ with open('json_output/CREC-2021-02-24/cr.json', "r") as file:
 
 cr_loaded_list = json.loads(cr_json)
 
-#%%
-# do something with the cr_loaded_list
+#%% Clean section text
+def clean_section(section):
+    '''
+    This function takes a section of text and:
+        1. Removes extraneous page numbers
+        2. Removes everything in the header
+        3. Removes some newline spaces
+        4. Replace some newlines with newline + tab
 
-# print(cr_loaded_list[25]['raw_text'])
+    Parameters
+    ----------
+    section : string
+        string of text representing a section in the congressional crecord
+
+    Returns
+    -------
+    cleaned_section : string
+        Condensed text without new lines and such
+
+    '''
+    
+    # Remove extraneous page #'s, which appear either as [H123] or [S123]
+    page_pattern = re.compile(r"""
+                        \n\n            # identify preceeding newlines to the pages.
+                        \[+             # Start with one or more open brackets
+                        Page            # Our string ends with something like [Page H123]]
+                        \s              # Whitespace
+                        [HS]            # Either 'H' or 'S'
+                        \d+             # At least one digit
+                        \]+             # Ending bracket(s)
+                        \s              # Any remaining whitespace before the start of our text
+                         """, 
+                        re.VERBOSE | re.MULTILINE)
+    cleaned_section = re.sub(page_pattern, ' ', section) # replace above with space.
+    
+    
+    # Remove everything in the header (Congressional Record Volume all the way up to
+    #  www.gpo.gov
+    header_pattern = re.compile(r"""
+                        \[             # Start with an open bracket
+                        Congressional   # Then theterm Congressional Record Volume
+                        \s              # Include this in case reading the PDF gives us extra white spaces in between words
+                        Record          # Continuation of Congressional Record Volume
+                        \s              # More undetermined whitespace
+                        Volume          # End of Congressional Record Volume
+                        .*              # Find everything between the beginning and end
+                        \[              # Our string ends with something like [www.gpo.gov]
+                        www.gpo.gov     # The URL
+                        \]              # Closing bracket
+                        \n+             # tack on extra newlines
+                        \s+             # Any final whitespace
+                        """,   
+                        re.VERBOSE | re.MULTILINE | re.DOTALL)
+                          
+    cleaned_section = re.sub(header_pattern, '', cleaned_section)
+    
+    # Remove some newline spaces
+    # remove formatting newlines that do not start new paragraph
+    new_line_pattern = re.compile("\n(?=\S)")
+    cleaned_section = re.sub(new_line_pattern, '', cleaned_section)
+    
+    # address new paragraph newlines... replace with newline and tab
+    new_line_pattern2  = re.compile("\n\s{2}(?=[A-Z])")
+    cleaned_section = re.sub(new_line_pattern2, '\n\t', cleaned_section)
+    
+    # remove initial space that "centers" the title text and any extra 
+    # newlines at the end
+    return cleaned_section.strip()
+    
+    
 
 # Strip whitespace and turn our text into a normal string
-test = cr_loaded_list[55]['raw_text']#.split())
+test = cr_loaded_list[35]['raw_text']
 
-# Remove extraneous page #'s, which appear either as [H123] or [S123]
-page_pattern = re.compile(r"""
-                    \n\n            # identify preceeding newlines to the pages.
-                    \[+             # Start with one or more open brackets
-                    Page            # Our string ends with something like [Page H123]]
-                    \s              # Whitespace
-                    [HS]            # Either 'H' or 'S'
-                    \d+             # At least one digit
-                    \]+             # Ending bracket(s)
-                    \s              # Any remaining whitespace before the start of our text
-                     """, 
-                    re.VERBOSE | re.MULTILINE)
-test = re.sub(page_pattern, ' ', test) # replace above with space.
-
-
-# Remove everything in the header (Congressional Record Volume all the way up to
-#  www.gpo.gov
-header_pattern = re.compile(r"""
-                    \[             # Start with an open bracket
-                    Congressional   # Then theterm Congressional Record Volume
-                    \s              # Include this in case reading the PDF gives us extra white spaces in between words
-                    Record          # Continuation of Congressional Record Volume
-                    \s              # More undetermined whitespace
-                    Volume          # End of Congressional Record Volume
-                    .*              # Find everything between the beginning and end
-                    \[              # Our string ends with something like [www.gpo.gov]
-                    www.gpo.gov     # The URL
-                    \]              # Closing bracket
-                    \n+             # tack on extra newlines
-                    \s+             # Any final whitespace
-                    """,   
-                    re.VERBOSE | re.MULTILINE | re.DOTALL)
-test = re.sub(header_pattern, '', test)
-
-# Remove some newline spaces
-# remove formatting newlines that do not start new paragraph
-new_line_pattern = re.compile("\n(?=\S)")
-test = re.sub(new_line_pattern, '', test)
-
-# address new paragraph newlines... replace with newline and tab
-new_line_pattern2  = re.compile("\n\s{2}(?=[A-Z])")
-test = re.sub(new_line_pattern2, '\n\t', test)
-
-# remove initial space that "centers" the title text and any extra newlines at the end
-test = test.strip()
-
-
-print(test)
+print(clean_section(test))
 
 
 #%% Determine title
@@ -99,7 +118,8 @@ def determine_title(section):
     # It'll be the first item in the list
     return split_text[0]
 
-print(determine_title(test))
+
+print(determine_title(clean_section(test)))
     
     
 

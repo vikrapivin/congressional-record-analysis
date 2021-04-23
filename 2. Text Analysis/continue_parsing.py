@@ -25,7 +25,7 @@ cr_loaded_list = json.loads(cr_json)
 # print(cr_loaded_list[25]['raw_text'])
 
 # Strip whitespace and turn our text into a normal string
-test = cr_loaded_list[152]['raw_text']#.split())
+test = cr_loaded_list[55]['raw_text']#.split())
 
 # Remove extraneous page #'s, which appear either as [H123] or [S123]
 page_pattern = re.compile(r"""
@@ -75,6 +75,35 @@ test = test.strip()
 
 
 print(test)
+
+
+#%% Determine title
+def determine_title(section):
+    '''
+
+    Parameters
+    ----------
+    section : long string
+        string of text representing a section in the congressional crecord
+
+    Returns
+    -------
+    split_text[0]: string
+        the title of the text, which is also the first line in the text
+
+    '''
+    
+    # Find the first phrase before the new line
+    split_text = section.splitlines()
+    
+    # It'll be the first item in the list
+    return split_text[0]
+
+print(determine_title(test))
+    
+    
+
+
 
 
 #%%

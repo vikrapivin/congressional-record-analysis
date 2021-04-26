@@ -92,8 +92,8 @@ def parseSection(child_element):
     parsedSection = {}
     try:
         parsedSection['CR_Section'] = child_element.partName.text
-        parsedSection['title'] = child.title.text
-        urlOfReferencedText = child.location.find('url',{'displayLabel':"HTML rendition"}).text
+        parsedSection['title'] = child_element.title.text
+        urlOfReferencedText = child_element.location.find('url',{'displayLabel':"HTML rendition"}).text
         # wrap the below function in some kind of cached file checker which will cache the html files it pulls
         html_rend_pull = requestHTMLFile(urlOfReferencedText)
         bs4_html_rend_pull = BeautifulSoup(html_rend_pull, 'html.parser')

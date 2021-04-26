@@ -9,4 +9,5 @@ json_output/*
 #json_output/*/*
 #json_ouput/CREC-2021-03-04/*
 #!json_output/CREC-2021-02-24/
-
+cr_scraper/__pycache__/
+cr_scraper/__pycache__/*

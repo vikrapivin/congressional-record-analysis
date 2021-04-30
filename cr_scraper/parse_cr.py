@@ -31,10 +31,10 @@ def requestHTMLFile(url, useCache = True):
             try:
                 os.makedirs(os.path.dirname(fileSavePath))
             except OSError as exc: # Guard against race condition
-                if exc.errno == errno.EEXIST:
+                if exc.errno != errno.EEXIST:
                     raise fileExists('Tried to create a directory that later existed. This is probably a race condition where another instance downloading CR data finished first.')
-                else:
-                    raise fileExists('Tried to create a directory that did not exist and now exists. Something is wrong in requestHTMLFile.')
+                # else:
+                #     raise fileExists('Tried to create a directory that did not exist and now exists. Something is wrong in requestHTMLFile.')
             with open(fileSavePath, "w") as f:
                 f.write(downloadHTML.text)
             return downloadHTML.content

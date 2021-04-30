@@ -31,8 +31,10 @@ def requestHTMLFile(url, useCache = True):
             try:
                 os.makedirs(os.path.dirname(fileSavePath))
             except OSError as exc: # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise fileExists('Tried to create file that later existed. Something is wrong in requestHTMLFile.')
+                if exc.errno == errno.EEXIST:
+                    raise fileExists('Tried to create a directory that later existed. This is probably a race condition where another instance downloading CR data finished first.')
+                else:
+                    raise fileExists('Tried to create a directory that did not exist and now exists. Something is wrong in requestHTMLFile.')
             with open(fileSavePath, "w") as f:
                 f.write(downloadHTML.text)
             return downloadHTML.content
@@ -124,7 +126,7 @@ def parseSection(child_element):
         return None
     try:
         parsedSection['citation'] = child_element.find('identifier',{'type':'preferred citation'}).text
-    except AttributeError:
+    except AttributeError: #probably should be done in a cleaner way so that if the citation is missing code still runs.
         raise CitationError('Missing Preferred Citation in parseSection')
     return parsedSection
 
@@ -173,6 +175,7 @@ def saveCRMetadata(listAsJSON, jsonSavePath):
 # savePath, optional, where to save the CR for that day
 # saveFile, optional, whether or not to save file
 # returnAsJSON, optional, whether or not to return json or parsed bs4 file
+#   file will not be saved if returnAsJSON is set to false
 def getCR(dateString, savePath='', returnAsJSON = True, saveFile = True):
     mods, fullDateString = getCRMetadata(dateString, returnFullDateString = True)
     if savePath == '':
@@ -180,10 +183,10 @@ def getCR(dateString, savePath='', returnAsJSON = True, saveFile = True):
     else:
         jsonSavePath = savePath
     listOfParsedSections = parseCRMetadata(mods)
-    listAsJSON = makeCRJSON(listOfParsedSections)
-    if saveFile == True:
-        saveCRMetadata(listAsJSON,jsonSavePath)
     if returnAsJSON == True:
+        listAsJSON = makeCRJSON(listOfParsedSections)
+        if saveFile == True:
+            saveCRMetadata(listAsJSON,jsonSavePath)
         return listAsJSON
     else:
         return listOfParsedSections

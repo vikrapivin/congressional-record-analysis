@@ -4,21 +4,19 @@
 import cr_scraper.parse_cr as crp
 from tqdm import tqdm
 import time
+from ScrapeRecord import get_dates_script
 
-dates = [
-'2021-04-12',
-'2021-04-13',
-'2021-04-14',
-'2021-04-15',
-'2021-04-16',
-'2021-04-19',
-'2021-04-20',
-'2021-04-21',
-'2021-04-22',
-'2021-04-26',
-'2021-04-27',
-'2021-04-28'
-]
+#%%
+# Get our soup from the Congressional Record Site
+url = 'https://www.congress.gov/congressional-record/117th-congress/browse-by-date' 
+
+
+results = requests.get(url).text
+soup = BeautifulSoup(results, 'html.parser')
+
+# Pull dates using our custom function
+dates = get_dates_script.clean_date_text(soup)
+
 
 #%% Parse the Congressional Records for all dates in our list
 

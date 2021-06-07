@@ -5,12 +5,90 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import re
+import urllib.request
+import zipfile as  zp
+import shutil 
+import io
+
+# Download the zip file for the current congressional day
+# dateString is the same date string as sent to getCR
+# useCache is whether or not to see if the zip file is downloaded/save the downloaded file
+# extractZipIfFileExists, only relevant if useCache is True. If this parameter is set to True,
+#  re-extract the cached zip file to the proper directory, if false return without extracting
+def downloadAndExtractZipFile(dateString, useCache=True, extractZipIfFileExists=True):
+    urlOfZipFile = 'https://www.govinfo.gov/content/pkg/CREC-' + dateString + '.zip'
+    if useCache == False:
+        zipfileHandle = urllib.request.urlopen(urlOfZipFile)
+        zipfile = zipfileHandle.read()
+    else:
+        fileSavePath = urlOfZipFile[24:len(urlOfZipFile)]
+        if os.path.exists(os.path.dirname(fileSavePath)) and os.path.exists(fileSavePath):
+            # handle getting cached file
+            if extractZipIfFileExists is False:
+                return
+            cachedZIPFile = open(fileSavePath, "rb")
+            zipfile = cachedZIPFile.read()
+            cachedZIPFile.close()
+        else:
+            headers = {
+                'User-Agent': 'My Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0',
+            }
+            req = urllib.request.Request(urlOfZipFile, headers=headers)
+            zipfileHandle = urllib.request.urlopen(req)
+            zipfile = zipfileHandle.read()
+            try:
+                os.makedirs(os.path.dirname(fileSavePath))
+            except OSError as exc: # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise fileExists('Tried to create a directory that later existed. This is probably a race condition where another instance Zip file finished first.')
+                # else:
+                #     raise fileExists('Tried to create a directory that did not exist and now exists. Something is wrong in requestHTMLFile.')
+            with open(fileSavePath, "wb") as f:
+                f.write(zipfile)
+    file_cr_zip = io.BytesIO(zipfile)
+    pyZipHandle = zp.ZipFile(file_cr_zip,mode='r')
+    try:
+        os.makedirs(os.path.dirname('tmp'))
+    except OSError as exc: # Guard against race condition
+        if exc.errno != errno.EEXIST:
+            pass # this is okay
+        else:
+            pass
+            # probably handle this
+    pyZipHandle.extractall(path='tmp')
+    try:
+        shutil.rmtree('content/pkg/'+'CREC-'+dateString+'/html/')
+    except FileNotFoundError as exc:
+        try:
+            os.makedirs(os.path.dirname('content/pkg/'+'CREC-'+dateString+'/'))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                pass # probably ok
+            else:
+                pass
+                # probably handle this
+    try:
+        os.makedirs(os.path.dirname('metadata/pkg/'+'CREC-'+dateString+'/'))
+    except OSError as exc: # Guard against race condition
+        if exc.errno != errno.EEXIST:
+            pass # this is okay
+        else:
+            pass
+            # probably handle this
+    shutil.move('tmp/CREC-'+dateString+'/html', 'content/pkg/'+'CREC-'+dateString+'/html/')
+    shutil.move('tmp/CREC-'+dateString+'/mods.xml', 'metadata/pkg/'+'CREC-'+dateString+'/mods.xml')
+    # try:
+    #     shutil.rmtree('tmp')
+    # except OSError as e:
+    #     print("Error: %s : %s" % (dir_path, e.strerror))
+
+
 
 # Download the htm files referenced in the main file for that day. Cache them 
 # so you do not need to keep redownloading them. Make sure path of this file 
 # is the project directory, otherwise you will need to modify .gitignore or 
 # your personal exclude file
-def requestHTMLFile(url, useCache = True):
+def requestHTMLFile(url, useCache = True, useZip = True):
     if useCache == False:
         return requests.get(url).content
     else:
@@ -177,6 +255,7 @@ def saveCRMetadata(listAsJSON, jsonSavePath):
 # returnAsJSON, optional, whether or not to return json or parsed bs4 file
 #   file will not be saved if returnAsJSON is set to false
 def getCR(dateString, savePath='', returnAsJSON = True, saveFile = True):
+    downloadAndExtractZipFile(dateString)
     mods, fullDateString = getCRMetadata(dateString, returnFullDateString = True)
     if savePath == '':
         jsonSavePath = 'json_output/' + fullDateString + '/cr.json'

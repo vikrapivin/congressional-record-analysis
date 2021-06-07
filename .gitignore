@@ -3,6 +3,7 @@
 # ignore cached files...
 content/*
 metadata/*
+tmp/*
 # provide one example of the json_output
 json_output/*
 !json_output/CREC-2021-02-24/
